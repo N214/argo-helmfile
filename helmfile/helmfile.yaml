@@ -1,0 +1,57 @@
+environments:
+  # we will use the default environment as our sandbox
+  default:
+  dev:
+  prod:
+    # we can also have values, which will be available
+    # in helmfile templates as .Values
+    values:
+      - mongoPassword: very-strong-password
+---
+releases:
+- name: myapps-2
+  namespace: mynamespace2
+  chart: charts/test
+  needs: [mynamespace/mongodb]
+  version: 0.1.0
+  hooks:
+  - events: ["prepare"]
+    showlogs: true
+    command: "../../scripts/create_namespace.sh"
+    args: ["mynamespace2"]
+
+- name: myapp
+  namespace: mynamespace
+  chart: charts/test
+  needs: [mongodb]
+  version: 0.1.0
+  hooks:
+  - events: ["prepare"]
+    showlogs: true
+    command: "scripts/create_namespace.sh"
+    args: ["mynamespace"]
+
+
+- name: mongodb
+  chart: bitnami/mongodb
+  namespace: mynamespace
+  version: 13.9.1
+  installed: {{ ne .Environment.Name "default" }}
+  values:
+    - auth:
+        rootPassword: root
+        usernames: [myuser]
+        passwords:
+          # read the password from environment values, if provided
+          - {{ .Values | get "mongoPassword" "mypass" }}
+        databases: [mydb]
+      persistence:
+        enabled: {{ eq .Environment.Name "prod" }}
+        storageClass: local-path
+        size: 1Gi
+
+
+
+repositories:
+  - name: bitnami
+    url: https://charts.bitnami.com/bitnami
