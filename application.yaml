@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: my-helmfiles-app
+  namespace: default
+spec:
+  project: default
+  source:
+#mention your own repo which include the helmfile.yaml and define the path
+    repoURL: https://github.com/N214/argo-helmfile.git
+    targetRevision: HEAD
+    path: helmfile
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: helmfiles-app
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 2

@@ -17,7 +17,7 @@ releases:
   hooks:
   - events: ["prepare"]
     showlogs: true
-    command: "../../scripts/create_namespace.sh"
+    command: "scripts/create_namespace.sh"
     args: ["mynamespace2"]
 
 - name: myapp
